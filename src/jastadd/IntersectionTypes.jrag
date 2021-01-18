@@ -6,26 +6,15 @@ aspect IntersectionTypes {
 
   rewrite IntersectionTypeAccess {
     to Access {
-      // /* DEBUG */
-      // String s = "unknown";
-      // Access a = getAccess();
-      //
-      // if (a.assignmentContext()) {
-      //   s = "assignment";
-      // } else if (a.castContext()) {
-      //   s = "cast";
-      // } else if (a.invocationContext()) {
-      //   s = "invocation";
-      // } else if (a.numericContext()) {
-      //   s = "numeric";
-      // } else if (a.stringContext()) {
-      //   s = "string";
-      // }
-      //
-      // System.err.println("found intersection type access in " + s + " context");
-
       return erasedCopy();
     }
   }
 
+  /* IDEA: anzichè triggerare la rewrite diretta di un nodo IntersectionTypeAccess,
+   * si può implementare la rewrite dei nodi:
+   * TODO
+   * , la quale riscrive ciascuno di tali nodi come un nodo IntersectionCastExpr
+   * (con i figli corretti) e successivamente riscrive il nodo
+   * IntersectionTypeAccess come la sua erasedCopy()
+   */
 }
