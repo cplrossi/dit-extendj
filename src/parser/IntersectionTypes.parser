@@ -1,0 +1,21 @@
+Access reference_type =
+	intersection_type.t
+	 {: return t; :}
+	;
+
+Access intersection_type =
+	reference_type.t additional_bound_list_2.b
+	 {: return new IntersectionTypeAccess(t, b); :}
+	;
+
+List additional_bound_list_2 =
+	additional_bound_2.b additional_bound_list_2.l
+	 {: l.insertChild(b, 0); return l; :}
+	| additional_bound_2.b
+	 {: return new List().add(b); :}
+	;
+
+Access additional_bound_2 =
+	INTERSECT interface_type.t
+	 {: return t; :}
+	;

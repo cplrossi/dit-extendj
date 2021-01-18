@@ -1,0 +1,11 @@
+import java.util.function.Function;
+
+aspect InterfaceTreeTraversal {
+	protected <R> R TypeDecl.interfaceTreeTraverse(Function<TypeDecl, R> f) {
+		for (TypeDecl iType: superInterfaces()) {
+			iType.interfaceTreeTraverse(f);
+		}
+
+		return f.apply(this);
+	}
+}

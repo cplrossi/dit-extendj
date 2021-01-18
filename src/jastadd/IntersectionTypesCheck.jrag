@@ -1,0 +1,130 @@
+aspect IntersectionTypesCheck {
+
+	/* a fresh interface declaration (as non terminal attribute) which extends
+	 * every intersection type bound, that is an induced functional interface
+	 */
+	refine TypeCheck eq IntersectionCastExpr.type() {
+		/* TODO: the following check fails with inner interfaces */
+	  TypeDecl t = program().lookupType(hostPackage(), inducedTypeName());
+
+		if (t == unknownType()) {
+			t = buildInducedFunctionalInterface();
+
+			compilationUnit().addInducedType(t);
+		}
+
+		return t;
+	}
+
+	eq IntersectionCastExpr.getExpr().targetType() = type();
+
+	// I think these ones should be correct
+	eq IntersectionCastExpr.assignedAfter(Variable v) = getExpr().assignedAfter(v);
+	eq IntersectionCastExpr.unassignedAfter(Variable v) = getExpr().unassignedAfter(v);
+	eq IntersectionCastExpr.isSuperAccess() = getExpr().isSuperAccess();
+	eq IntersectionCastExpr.isThisAccess() = getExpr().isThisAccess();
+	eq IntersectionCastExpr.containsParseName() = getTypeAccess().containsParseName() || getExpr().containsParseName();
+	eq IntersectionCastExpr.constant() = type().cast(getExpr().constant());
+	eq IntersectionCastExpr.isConstant() = getExpr().isConstant() && (getTypeAccess().type().isPrimitive() || getTypeAccess().type().isString());
+	eq IntersectionCastExpr.staticContextQualifier() = getExpr().staticContextQualifier();
+	eq IntersectionCastExpr.getTypeAccess().nameType() = NameType.TYPE_NAME;
+	eq IntersectionCastExpr.getTypeList().nameType() = NameType.TYPE_NAME;
+
+	eq IntersectionCastExpr.getExpr().assignmentContext() = false;
+	eq IntersectionCastExpr.getExpr().invocationContext() = false;
+	eq IntersectionCastExpr.getExpr().castContext() = true;
+	eq IntersectionCastExpr.getExpr().stringContext() = false;
+	eq IntersectionCastExpr.getExpr().numericContext() = false;
+
+	IntersectionCastExpr contributes each typeProblems() to CompilationUnit.problems();
+
+	// 15.16
+	syn Collection<Problem> IntersectionCastExpr.typeProblems() {
+		Collection<Problem> problems = new LinkedList<Problem>();
+
+		/* 1. ReferenceType must denote a class or interface type.
+		 * 2. The erasures of all the listed types must be pairwise different.
+		 * 3. No two listed types may be subtypes of different parametrizations of the same generic interface.
+		 */
+
+		Access leftmostAccess = getTypeAccess();
+		TypeDecl leftmostType = leftmostAccess.type();
+		ArrayList<Access> allAccesses = new ArrayList<>();
+
+		// 1.
+		if (!leftmostAccess.isTypeAccess()) {
+			problems.add(errorf("%s is not a type access in intersection cast expression",
+				leftmostAccess.prettyPrint()));
+		} else if (!leftmostType.isClassDecl() && !leftmostType.isInterfaceDecl()) {
+				problems.add(errorf("%s is not a class or interface access in intersection cast expression",
+					leftmostAccess.prettyPrint()));
+		} else {
+			allAccesses.add(leftmostAccess);
+		}
+
+		for (Access a : getTypeListList()) {
+			if (a.type().isInterfaceDecl()) {
+				allAccesses.add(a);
+			} else {
+				problems.add(errorf("%s is not a type access in intersection cast expression",
+					a.prettyPrint()));
+			}
+		}
+
+		// 2. & 3.
+		for (int i = 0; i < allAccesses.size(); ++i) {
+			TypeDecl t1 = allAccesses.get(i).type();
+
+			for (int j = i + 1; j < allAccesses.size(); ++j) {
+				TypeDecl t2 = allAccesses.get(j).type();
+
+				if (i != j) {
+					// 2.
+					if (t1.erasure().equals(t2.erasure())) {
+						problems.add(errorf("erasures for types %s and %s are equals",
+							t1.prettyPrint(), t2.prettyPrint()));
+					}
+
+					// 3. TODO: fix redundant checks in interface trees traversals
+					if (t1.isParameterizedType() && t2.isParameterizedType()) {
+						t1.interfaceTreeTraverse((x) -> {
+							t2.interfaceTreeTraverse((y) -> {
+								if ((x.erasure()).equals(y.erasure())) {
+									/* DEBUG */
+									System.err.println("found common (type erased) super interface: " + x.name());
+
+									if (x instanceof ParTypeDecl && y instanceof ParTypeDecl) {
+
+										Parameterization parX = ((ParTypeDecl) x).getParameterization();
+										Parameterization parY = ((ParTypeDecl) y).getParameterization();
+
+										if (!parX.equals(parY)) {
+											problems.add(errorf(
+												"no two listed types may be subtypes of different " +
+												"parameterizations of the same generic interface: " +
+												parX + " and " + parY));
+										}
+									}
+								}
+
+								return 0xDEAD;
+							});
+
+							return 0xBEEF;
+						});
+					}
+				}
+			}
+		}
+
+		/* DEBUG */
+		if (problems.size() == 0) {
+			System.err.println("intersection cast common superinterfaces parameterization and erasures check PASSED");
+		} else {
+			System.err.println("type check for intersection cast FAILED");
+		}
+
+		return problems;
+	}
+
+}

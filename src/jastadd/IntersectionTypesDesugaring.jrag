@@ -1,0 +1,84 @@
+aspect IntersectionTypesDesugaring {
+
+	/* we need to do this at the moment beacause we intentionally produce a
+	 * side-effect into the symbol table that is not recognized by the internal
+	 * caching system.
+	 */
+	uncache Program.lookupType(String packageName, String typeName);
+
+	/* add a type to AST and global symbol table */
+	public synchronized void Program.addType(TypeDecl t) {
+		sourceTypeMap.put(t.fullName(), t);
+	}
+
+	/* updates the AST and the global symbol table */
+	public void CompilationUnit.addInducedType(TypeDecl t) {
+		TypeDecl check = program().lookupType(packageName(), t.name());
+
+		if (!check.equals(t)) {
+			/* add to AST */
+			addTypeDecl(t);
+
+			/* we add it also to global symbol table */
+			program().addType(t);
+		}
+	}
+
+	/* from JastAdd mailing list:
+	 * A lazy attribute is not cached when it depends on an AST node that is in
+	 * the process of being rewritten. If the attribute is accessed at a later
+	 * time, when the AST nodes it depends on are all in their final rewritten
+	 * state, the attribute will be cached.
+	 */
+
+	syn lazy String IntersectionCastExpr.inducedTypeName() =
+		getInducedFunctionalInterfaceId(bounds());
+
+	syn lazy Collection<Access> IntersectionCastExpr.bounds() {
+		Collection<Access> c = new ArrayList<>();
+
+		c.add(getTypeAccess());
+
+		for (Access a : getTypeListList()) {
+			c.add(a);
+		}
+
+		return c;
+	}
+
+	/* produce a new induced functional interface declaration */
+	protected InterfaceDecl IntersectionCastExpr.buildInducedFunctionalInterface() {
+		Modifiers m = getTypeAccess().type().getModifiers().treeCopy();
+		Collection<Access> allBounds = bounds();
+		String name = getInducedFunctionalInterfaceId(bounds());
+
+		/* implements i_1, i_2, ... i_n */
+		List<Access> l = new List();
+		for (Access a : allBounds) {
+			l.add(a.treeCopy());
+		}
+
+		InterfaceDecl iDecl = new InterfaceDecl(
+			m,
+			name,
+			l,
+			new List<BodyDecl>()
+		);
+
+		return iDecl;
+	}
+
+	/* really stupid method to get a fresh ID for induced interface
+	 * TODO: find a better way
+	 */
+	protected String IntersectionCastExpr.getInducedFunctionalInterfaceId(Collection<Access> c) {
+		StringBuilder nameBuilder = new StringBuilder("$");
+
+		for (Access a : c) {
+			nameBuilder.append(a.type().getID());
+		}
+
+		return nameBuilder.toString();
+	}
+
+}

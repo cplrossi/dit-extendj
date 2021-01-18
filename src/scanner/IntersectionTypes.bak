@@ -1,0 +1,11 @@
+/* This insane regex is faulty: it matches 'Iterable<Integer> & Serializable x', but also something like '<T extends Runnable & Serializable> void', that is not correct. */
+
+<YYINITIAL> {
+	"&"/{WhiteSpace}*([:jletter:][:jletterdigit:]*[\.<>]?)+({WhiteSpace}*"&"{WhiteSpace}*([:jletter:][:jletterdigit:]*[\.<>]?)+)*{WhiteSpace}+[:jletter:][:jletterdigit:]* {
+
+		/* DEBUG */
+		System.out.println("found INTERSECT at line " + (yyline + 1));
+
+		return sym(Terminals.INTERSECT); }
+}
+
