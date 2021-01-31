@@ -5,7 +5,7 @@
 
 # TODO: need to support new file hierarchy
 
-MAIN='org.cplrossi.testgame.Game'
+MAIN="org.cplrossi.testgame.Game org.cplrossi.dit.Test org.cplrossi.dit.Test2 org.cplrossi.dit.Test3"
 
 check() {
 	if [[ $? -ne 0 ]]; then
@@ -25,7 +25,11 @@ for file in $(find . -name '*.java'); do
 	check $file
 done
 
-java -cp . $MAIN
+for main_class in $MAIN; do 
+	echo "*** running $main_class ***"
+
+	java -cp . $main_class
+done
 
 check
 

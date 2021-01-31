@@ -1,1 +1,1 @@
-IntersectionTypeAccess : Access ::= Access AdditionalBound:Access*;
+IntersectionTypeAccess : ClassAccess ::= Access AdditionalBound:Access*;
