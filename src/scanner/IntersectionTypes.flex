@@ -17,7 +17,7 @@
 	"&"/{WhiteSpace}*([:jletter:][:jletterdigit:]*{WhiteSpace}*[\.<>]?)+({WhiteSpace}*"&"{WhiteSpace}*([:jletter:][:jletterdigit:]*[\.<>]?)+)*{WhiteSpace}+[:jletter:][:jletterdigit:]*{WhiteSpace}*[,;=\)] {
 
 		/* DEBUG */
-		System.out.println("found INTERSECT at line " + (yyline + 1));
+		System.out.println("found INTERSECT token at line " + (yyline + 1));
 
 		return sym(Terminals.INTERSECT); }
 }

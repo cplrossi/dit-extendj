@@ -1,20 +1,82 @@
 aspect IntersectionTypes {
 
-  syn Access IntersectionTypeAccess.erasedCopy() = getAccess().treeCopy();
+  syn boolean Variable.isIntersectionVariable();
 
-  syn TypeDecl IntersectionTypeAccess.erasedType() = getAccess().type();
+  eq Declarator.isIntersectionVariable() {
+    if (getTypeAccess().isIntersectionAccess()) {
+      return true;
+    }
 
-  rewrite IntersectionTypeAccess {
-    to Access {
-      return erasedCopy();
+    return false;
+  }
+
+  eq ParameterDeclaration.isIntersectionVariable() {
+    if (getTypeAccess().isIntersectionAccess()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  eq EnumConstant.isIntersectionVariable() = false;
+  eq CatchParameterDeclaration.isIntersectionVariable() = false;
+  eq InferredParameterDeclaration.isIntersectionVariable() = false;
+
+  syn boolean Access.isIntersectionAccess() = false;
+
+  eq VarAccess.isIntersectionAccess() {
+    return decl().isIntersectionVariable();
+  }
+
+  eq IntersectionAccess.isIntersectionAccess() = true;
+
+  syn Access IntersectionAccess.erasedCopy() = getAccess().treeCopy();
+
+  syn TypeDecl IntersectionAccess.erasedType() = getAccess().type();
+  eq IntersectionAccess.type() = erasedType();
+
+  syn Collection<Access> Variable.additionalBounds();
+
+  /* keep intersection type bounds information bounded to variable declaration */
+  eq Declarator.additionalBounds() {
+    if (isIntersectionVariable()) {
+      Collection<Access> c = new ArrayList<>();
+
+      for (Access a : ((IntersectionAccess) getTypeAccess()).getAdditionalBoundList()) {
+        c.add(a);
+      }
+
+      return c;
+    } else {
+      return new ArrayList<>();
     }
   }
 
-  /* IDEA: anzichè triggerare la rewrite diretta di un nodo IntersectionTypeAccess,
-   * si può implementare la rewrite dei nodi:
-   * TODO
-   * , la quale riscrive ciascuno di tali nodi come un nodo IntersectionCastExpr
-   * (con i figli corretti) e successivamente riscrive il nodo
-   * IntersectionTypeAccess come la sua erasedCopy()
-   */
+  /* keep intersection type bounds information bounded to parameter declaration */
+  eq ParameterDeclaration.additionalBounds() {
+    if (isIntersectionVariable()) {
+      Collection<Access> c = new ArrayList<>();
+
+      for (Access a : ((IntersectionAccess) getTypeAccess()).getAdditionalBoundList()) {
+        c.add(a);
+      }
+
+      return c;
+    } else {
+      return new ArrayList<>();
+    }
+  }
+
+  eq EnumConstant.additionalBounds() = new ArrayList<>();
+  eq CatchParameterDeclaration.additionalBounds() = new ArrayList<>();
+  eq InferredParameterDeclaration.additionalBounds() = new ArrayList<>();
+
+  /* DEBUG, just an hook to print attributes on screen */
+  refine TypeAnalysis eq VarAccess.type() {
+    if (isIntersectionAccess()) {
+      System.err.println("found intersection access at " + location());
+    }
+
+    return refined();
+  }
 }

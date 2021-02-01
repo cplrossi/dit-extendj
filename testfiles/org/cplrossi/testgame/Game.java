@@ -25,4 +25,3 @@ public class Game {
 		goAcrossRavine(player, true);
 	}
 }
-

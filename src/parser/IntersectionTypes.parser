@@ -5,7 +5,7 @@ Access reference_type =
 
 Access intersection_type =
 	reference_type.t additional_bound_list_2.b
-	 {: return new IntersectionTypeAccess(t, b); :}
+	 {: return new IntersectionAccess(t, b); :}
 	;
 
 List additional_bound_list_2 =
