@@ -400,6 +400,11 @@ aspect PathPart {
      * @param name The canonical name of the class.
      */
     public CompilationUnit getCompilationUnit(Program program, String name) throws IOException {
+      /* DEBUG */
+      if (isSource) {
+        System.err.println(name + " is a source file");
+      }
+
       ClassSource source = findSource(name);
       if (source == ClassSource.NONE) {
         throw new IOException(String.format("%s file not found: %s",

@@ -1,4 +1,84 @@
+import java.io.*;
+
 aspect IntersectionTypesDesugaring {
+
+	/* TODO(cplrossi): handle intersection cast cases != lambda expr:
+	 * we need to rewrite interseciton casts that don't have a lambda expr child
+	 * in order to add our mini runtime framework to program compilation units
+	 * and instantiate a proxy in place of the cast.
+	 * example:
+	 *
+	 * induced functional interface: $AB
+	 * original code:		((A & B) o).m();
+	 * rewritten code:	(($AB) IntersectionProxy.newInstance(
+		 										o,
+		 										new Class[] {
+			 									$AB.class
+												}
+											)).m();
+	 *
+	 * The rewritten version should be an AST subtree corresponding to example
+	 * code above.
+	 * I think our framework should be added as a syntethic compilation unit
+	 * programmatically built in the AST, maybe with an ID starting with '$'
+	 * to avoid name collisions.
+	 */
+
+	rewrite IntersectionCastExpr {
+		when (!(getExpr() instanceof LambdaExpr))
+			to Expr {
+				String className = "org.cplrossi.dit.IntersectionProxy";
+				String jarPath = this.getClass().getProtectionDomain()
+					.getCodeSource()
+					.getLocation()
+					.getPath();
+
+				if (!(program().hasIntersectionRuntime())) {
+					CompilationUnit cu = null;
+
+					try {
+						cu = new JarSourceFilePath(jarPath)
+							.getCompilationUnit(program(), className);
+					} catch (IOException e) {
+						System.err.println(e.getMessage());
+					}
+
+					for (ImportDecl d : cu.getImportDeclList()) {
+						compilationUnit().addImportDecl(d);
+					}
+
+					for (TypeDecl t: cu.getTypeDeclList()) {
+						compilationUnit().addTypeDecl(t);
+						program().addType(t);
+					}
+
+					program().setIntersectionRuntime(true);
+
+					System.err.println("added intersection cast runtime");
+				}
+
+				/* access on induced functional interface, needed to build the new subtree */
+				TypeAccess tAccess = new TypeAccess(type().getID());
+
+				/* DEBUG */
+				System.err.println("triggered induced funtional interface machinery");
+
+				/* TODO(cplrossi): implement method to build new subtree */
+				System.err.println("FATAL: intercast not implemented at " + location());
+
+				return new CastExpr(getTypeAccess(), getExpr());
+			}
+	}
+
+	private boolean Program._hasIntersectionRuntime = false;
+
+	public void Program.setIntersectionRuntime(boolean b) {
+		_hasIntersectionRuntime = b;
+	}
+
+	public boolean Program.hasIntersectionRuntime() {
+		return _hasIntersectionRuntime;
+	}
 
 	/* we need to do this at the moment beacause we intentionally produce a
 	 * side-effect into the symbol table that is not recognized by the internal
@@ -13,6 +93,9 @@ aspect IntersectionTypesDesugaring {
 
 	/* updates the AST and the global symbol table */
 	public void CompilationUnit.addInducedType(TypeDecl t) {
+		/* TODO: I think this approach doesn't work when using the same intersection
+		 * types in different compilation units of the same program */
+
 		TypeDecl check = program().lookupType(packageName(), t.name());
 
 		if (!check.equals(t)) {
@@ -31,8 +114,47 @@ aspect IntersectionTypesDesugaring {
 	 * state, the attribute will be cached.
 	 */
 
+	 	/* a fresh interface declaration (as non terminal attribute) which extends
+	 	 * every intersection type bound, that is an induced functional interface
+	 	 */
+ 	refine TypeCheck eq IntersectionCastExpr.type() {
+ 		/* TODO: the following check fails with inner interfaces */
+ 	  TypeDecl t = program().lookupType(hostPackage(), inducedTypeName());
+
+ 		if (t == unknownType()) {
+ 			t = buildInducedFunctionalInterface();
+
+ 			compilationUnit().addInducedType(t);
+
+			/* DEBUG */
+ 			System.err.println("built new induced functional interface: " + t.getID());
+ 		}
+
+ 		return t;
+ 	}
+
+ 	eq IntersectionCastExpr.getExpr().targetType() = type();
+
+ 	// I think these ones should be correct
+ 	eq IntersectionCastExpr.assignedAfter(Variable v) = getExpr().assignedAfter(v);
+ 	eq IntersectionCastExpr.unassignedAfter(Variable v) = getExpr().unassignedAfter(v);
+ 	eq IntersectionCastExpr.isSuperAccess() = getExpr().isSuperAccess();
+ 	eq IntersectionCastExpr.isThisAccess() = getExpr().isThisAccess();
+ 	eq IntersectionCastExpr.containsParseName() = getTypeAccess().containsParseName() || getExpr().containsParseName();
+ 	eq IntersectionCastExpr.constant() = type().cast(getExpr().constant());
+ 	eq IntersectionCastExpr.isConstant() = getExpr().isConstant() && (getTypeAccess().type().isPrimitive() || getTypeAccess().type().isString());
+ 	eq IntersectionCastExpr.staticContextQualifier() = getExpr().staticContextQualifier();
+ 	eq IntersectionCastExpr.getTypeAccess().nameType() = NameType.TYPE_NAME;
+ 	eq IntersectionCastExpr.getTypeList().nameType() = NameType.TYPE_NAME;
+
+ 	eq IntersectionCastExpr.getExpr().assignmentContext() = false;
+ 	eq IntersectionCastExpr.getExpr().invocationContext() = false;
+ 	eq IntersectionCastExpr.getExpr().castContext() = true;
+ 	eq IntersectionCastExpr.getExpr().stringContext() = false;
+ 	eq IntersectionCastExpr.getExpr().numericContext() = false;
+
 	syn lazy String IntersectionCastExpr.inducedTypeName() =
-		getInducedFunctionalInterfaceId(bounds());
+		createIntersectionId(bounds());
 
 	syn lazy Collection<Access> IntersectionCastExpr.bounds() {
 		Collection<Access> c = new ArrayList<>();
@@ -50,10 +172,11 @@ aspect IntersectionTypesDesugaring {
 	protected InterfaceDecl IntersectionCastExpr.buildInducedFunctionalInterface() {
 		Modifiers m = getTypeAccess().type().getModifiers().treeCopy();
 		Collection<Access> allBounds = bounds();
-		String name = getInducedFunctionalInterfaceId(bounds());
+		String name = createIntersectionId(bounds());
 
 		/* implements i_1, i_2, ... i_n */
 		List<Access> l = new List();
+
 		for (Access a : allBounds) {
 			l.add(a.treeCopy());
 		}
@@ -71,7 +194,7 @@ aspect IntersectionTypesDesugaring {
 	/* really stupid method to get a fresh ID for induced interface
 	 * TODO: find a better way
 	 */
-	protected String IntersectionCastExpr.getInducedFunctionalInterfaceId(Collection<Access> c) {
+	protected String IntersectionCastExpr.createIntersectionId(Collection<Access> c) {
 		StringBuilder nameBuilder = new StringBuilder("$");
 
 		for (Access a : c) {
@@ -80,5 +203,4 @@ aspect IntersectionTypesDesugaring {
 
 		return nameBuilder.toString();
 	}
-
 }

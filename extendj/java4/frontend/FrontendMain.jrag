@@ -180,6 +180,10 @@ aspect FrontendMain {
         Iterator<CompilationUnit> iter = program.compilationUnitIterator();
         while (iter.hasNext()) {
           CompilationUnit unit = iter.next();
+
+          /* DEBUG */
+          System.err.println("processing " + unit.relativeName());
+
           work.add(unit);
           int result = processCompilationUnit(unit);
           switch (result) {

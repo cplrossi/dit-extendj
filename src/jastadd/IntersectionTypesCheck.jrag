@@ -1,41 +1,5 @@
 aspect IntersectionTypesCheck {
 
-	/* a fresh interface declaration (as non terminal attribute) which extends
-	 * every intersection type bound, that is an induced functional interface
-	 */
-	refine TypeCheck eq IntersectionCastExpr.type() {
-		/* TODO: the following check fails with inner interfaces */
-	  TypeDecl t = program().lookupType(hostPackage(), inducedTypeName());
-
-		if (t == unknownType()) {
-			t = buildInducedFunctionalInterface();
-
-			compilationUnit().addInducedType(t);
-		}
-
-		return t;
-	}
-
-	eq IntersectionCastExpr.getExpr().targetType() = type();
-
-	// I think these ones should be correct
-	eq IntersectionCastExpr.assignedAfter(Variable v) = getExpr().assignedAfter(v);
-	eq IntersectionCastExpr.unassignedAfter(Variable v) = getExpr().unassignedAfter(v);
-	eq IntersectionCastExpr.isSuperAccess() = getExpr().isSuperAccess();
-	eq IntersectionCastExpr.isThisAccess() = getExpr().isThisAccess();
-	eq IntersectionCastExpr.containsParseName() = getTypeAccess().containsParseName() || getExpr().containsParseName();
-	eq IntersectionCastExpr.constant() = type().cast(getExpr().constant());
-	eq IntersectionCastExpr.isConstant() = getExpr().isConstant() && (getTypeAccess().type().isPrimitive() || getTypeAccess().type().isString());
-	eq IntersectionCastExpr.staticContextQualifier() = getExpr().staticContextQualifier();
-	eq IntersectionCastExpr.getTypeAccess().nameType() = NameType.TYPE_NAME;
-	eq IntersectionCastExpr.getTypeList().nameType() = NameType.TYPE_NAME;
-
-	eq IntersectionCastExpr.getExpr().assignmentContext() = false;
-	eq IntersectionCastExpr.getExpr().invocationContext() = false;
-	eq IntersectionCastExpr.getExpr().castContext() = true;
-	eq IntersectionCastExpr.getExpr().stringContext() = false;
-	eq IntersectionCastExpr.getExpr().numericContext() = false;
-
 	IntersectionCastExpr contributes each typeProblems() to CompilationUnit.problems();
 
 	// 15.16
@@ -53,7 +17,7 @@ aspect IntersectionTypesCheck {
 
 		// 1.
 		if (!leftmostAccess.isTypeAccess()) {
-			problems.add(errorf("%s is not a type access in intersection cast expression",
+			problems.add(errorf("LM %s is not a type access in intersection cast expression",
 				leftmostAccess.prettyPrint()));
 		} else if (!leftmostType.isClassDecl() && !leftmostType.isInterfaceDecl()) {
 				problems.add(errorf("%s is not a class or interface access in intersection cast expression",

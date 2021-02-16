@@ -5,7 +5,7 @@
 
 # TODO: need to support new file hierarchy
 
-MAIN="org.cplrossi.testgame.Game org.cplrossi.dit.Test org.cplrossi.dit.Test2 org.cplrossi.dit.Test3"
+MAIN="org.cplrossi.testgame.Game org.cplrossi.dit.IntercastDesugaring"
 
 check() {
 	if [[ $? -ne 0 ]]; then

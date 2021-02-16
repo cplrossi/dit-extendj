@@ -1,5 +1,5 @@
 /* Copyright (c) 2005-2008, Torbjorn Ekman
- *               2015-2018, Jesper Öqvist <jesper.oqvist@cs.lth.se>
+ *               2015-2018, Jesper ï¿½qvist <jesper.oqvist@cs.lth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -464,7 +464,7 @@ aspect MethodSignature15 {
    * <ul>
    *   <li>The name of the member is identical to the name of the method in the
    *   method invocation.
-   *   <li>The member is accessible (§6.6) to the class or interface in which
+   *   <li>The member is accessible (ï¿½6.6) to the class or interface in which
    *   the method invocation appears.
    *   <li>The arity of the member is lesser or equal to the arity of the
    *   method invocation.

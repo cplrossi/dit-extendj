@@ -1,4 +1,3 @@
 package org.cplrossi.testgame;
 
-interface Swimmable { void swim(); }
-
+public interface Swimmable { void swim(); }

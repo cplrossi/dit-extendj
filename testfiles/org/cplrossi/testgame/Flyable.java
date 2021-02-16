@@ -1,4 +1,3 @@
 package org.cplrossi.testgame;
 
-interface Flyable { void fly(); }
-
+public interface Flyable { void fly(); }

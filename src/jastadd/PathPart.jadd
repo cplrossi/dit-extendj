@@ -1,0 +1,80 @@
+aspect PathPart {
+  public class JarSourceFilePath extends PathPart {
+    private final ZipFile jar;
+    private final String jarPath;
+    private final String fileSuffix = ".java";
+
+    public JarSourceFilePath(String jarPath) throws IOException {
+      super(true);  // it IS source file
+
+      this.jar = new ZipFile(jarPath);
+      this.jarPath = jarPath;
+    }
+
+    @Override
+    public String getPath() {
+      return jarPath;
+    }
+
+    @Override
+    public boolean hasPackage(String name) {
+      /* TODO(cplrossi): a serious implementation */
+      return true;
+    }
+
+    @Override
+    public ClassSource findSource(String name) {
+      String jarName = name.replace('.', '/') + fileSuffix;
+      ZipEntry entry = jar.getEntry(jarName);
+
+      if (entry != null) {
+        return new JarFileClassSource(this, jar, entry, jarPath);
+      } else {
+        return ClassSource.NONE;
+      }
+    }
+
+    @Override
+    public String toString() {
+      return "jar:" + jarPath;
+    }
+  }
+
+  public class JarFileClassSource extends FileClassSource {
+    private final ZipFile jar;
+    private final ZipEntry entry;
+    private final String jarPath;
+
+    public JarFileClassSource(PathPart sourcePath, ZipFile jar, ZipEntry entry, String jarPath) {
+      super(sourcePath, jarPath);
+      this.jar = jar;
+      this.entry = entry;
+      this.jarPath = jarPath;
+    }
+
+    @Override
+    public long lastModified() {
+      return entry.getTime();
+    }
+
+    @Override
+    public InputStream openInputStream() throws IOException {
+      return jar.getInputStream(entry);
+    }
+
+    @Override
+    public String pathName() {
+      return jarPath;
+    }
+
+    @Override
+    public String relativeName() {
+      return entry.getName();
+    }
+
+    @Override
+    public String sourceName() {
+      return pathName() + ":" + relativeName();
+    }
+  }
+}
