@@ -57,16 +57,13 @@ aspect IntersectionTypesDesugaring {
 					System.err.println("added intersection cast runtime");
 				}
 
-				/* access on induced functional interface, needed to build the new subtree */
+				/* create access on induced functional interface, needed to build the new subtree */
 				TypeAccess tAccess = new TypeAccess(type().getID());
 
 				/* DEBUG */
 				System.err.println("triggered induced funtional interface machinery");
 
-				/* TODO(cplrossi): implement method to build new subtree */
-				System.err.println("FATAL: intercast not implemented at " + location());
-
-				return new CastExpr(getTypeAccess(), getExpr());
+				return createDesugaredIntersectionSubtree(tAccess);
 			}
 	}
 
@@ -202,5 +199,39 @@ aspect IntersectionTypesDesugaring {
 		}
 
 		return nameBuilder.toString();
+	}
+
+	/* build replacement subtree for intersection cast expr */
+	protected CastExpr IntersectionCastExpr.createDesugaredIntersectionSubtree(Access a) {
+		/* proceeding bottom-up */
+
+		/* ArrayCreationExpr subtree */
+
+		// left (PrimaryExpr)
+		TypeAccess ta = new TypeAccess("Class");
+		ArrayTypeAccess ata = new ArrayTypeAccess(ta);
+
+		// right (ArrayInit)
+		ClassAccess ca = new ClassAccess();
+		Dot d = new Dot(a, ca);
+		List<Expr> le = new List<>();
+		le.add(d);
+		ArrayInit ai = new ArrayInit(le);
+		Opt<ArrayInit> oai = new Opt<>(ai);
+
+		ArrayCreationExpr ace = new ArrayCreationExpr(ata, oai);
+
+		/* MethodAccess subtree */
+		le = new List<>();
+		le.add(getExpr());
+		le.add(ace);
+
+		MethodAccess ma = new MethodAccess("newInstance", le);
+
+		/* CastExpr subtree (root of final subtree) */
+		ta = new TypeAccess("IntersectionProxy");
+		d = new Dot(ta, ma);
+
+		return new CastExpr(a, d);
 	}
 }
