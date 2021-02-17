@@ -6,15 +6,15 @@ public class Game {
 
 		/* test parameter declaration */
 		if (underwaterObj) {
-//			player.fly();
+			player.fly();
 			player.swim();
 
 			System.out.println("Picked object");
 
 			player.swim();
-//			player.fly();
+			player.fly();
 		} else {
-//			player.fly();
+			player.fly();
 		}
 
 		System.out.println("Crossed the ravine");

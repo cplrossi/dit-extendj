@@ -85,4 +85,6 @@ aspect IntersectionTypes {
 			}
   }
 
+  /* TODO(cplrossi): handle field accesses */
+
 }
