@@ -5,7 +5,7 @@
 
 # TODO: need to support new file hierarchy
 
-MAIN="org.cplrossi.testgame.Game org.cplrossi.dit.IntercastDesugaring"
+MAIN_CLASSES="org.cplrossi.testgame.Game org.cplrossi.dit.IntercastDesugaring"
 
 check() {
 	if [[ $? -ne 0 ]]; then
@@ -17,7 +17,6 @@ check() {
 }
 
 # Entry point
-rm -f *.class
 
 for file in $(find . -name '*.java'); do 
 	java -jar ../dit-extendj.jar $file
@@ -25,11 +24,11 @@ for file in $(find . -name '*.java'); do
 	check $file
 done
 
-for main_class in $MAIN; do 
+for main_class in $MAIN_CLASSES; do 
 	echo "*** running $main_class ***"
 
 	java -cp . $main_class
-done
 
-check
+	check
+done
 
