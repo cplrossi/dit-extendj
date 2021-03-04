@@ -57,11 +57,14 @@ aspect IntersectionTypes {
   /*** translation ***/
 
   /* variable/parameter access */
+  /* TODO: test intersection fields */
   rewrite VarAccess {
-    when (isIntersectionAccess() && !hasDoneIntersectionRewrite())
+    when (isIntersectionAccess() &&
+            !simpleAssignment() &&
+            !hasDoneIntersectionRewrite())
 			to IntersectionCastExpr {
 				/* DEBUG */
-				System.err.println("found intersection var/param access at " + location());
+				System.err.println("found intersection var/param/field access at " + location());
 
 				List<Access> l = new List();
 				Access tAccess = null;
@@ -85,6 +88,21 @@ aspect IntersectionTypes {
 			}
   }
 
-  /* TODO(cplrossi): handle field accesses */
+  /* TODO: rewrite CastExpr when Access is an intersection access (should fix
+   * lambda target type inference)
+   */
 
+   // rewrite LambdaExpr {
+   //   when (assignmentContext() &&
+   //          !castContext()
+   //          && getParent() instanceof AssignExpr
+   //          && ((AssignExpr) getParent()).getDest() instanceof VarAccess
+   //          && ((VarAccess)((AssignExpr) getParent()).getDest()).isIntersectionAccess() {
+   //     to IntersectionCastExpr {
+   //       System.err.println("found pure lambda expr in intersection type assignment context, rewriting as IntersectionCastExpr")
+   //
+   //       VarAccess dest =
+   //     }
+   //   }
+   // }
 }

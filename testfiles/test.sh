@@ -5,7 +5,7 @@
 
 # TODO: need to support new file hierarchy
 
-MAIN_CLASSES="org.cplrossi.testgame.Game org.cplrossi.dit.IntercastDesugaring"
+MAIN_CLASSES="org.cplrossi.testgame.Game org.cplrossi.dit.IntercastDesugaring org.cplrossi.dit.PureLambda"
 
 check() {
 	if [[ $? -ne 0 ]]; then
