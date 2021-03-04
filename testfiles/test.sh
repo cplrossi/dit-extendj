@@ -24,6 +24,8 @@ for file in $(find . -name '*.java'); do
 	check $file
 done
 
+echo
+
 for main_class in $MAIN_CLASSES; do 
 	echo "*** running $main_class ***"
 
