@@ -8,7 +8,7 @@ public class PureLambda {
   }
 
   private void doSomething() {
-    x = (I & J) () -> System.out.println("I'm method m");
+    x = () -> System.out.println("I'm method m");
 
     x.m();
     x.n();

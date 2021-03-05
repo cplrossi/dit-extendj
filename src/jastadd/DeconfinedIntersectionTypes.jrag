@@ -1,0 +1,121 @@
+aspect DeconfinedIntersectionTypes {
+
+  syn Access IntersectionAccess.erasedAccess() = getAccess();
+
+  /* erasure mapping preserving typing information */
+  rewrite IntersectionAccess {
+    to Access {
+			/* DEBUG */
+			System.err.println("rewriting IntersectionAccess to child Access at " + location());
+
+			Access a = erasedAccess();
+			Collection<Access> c = new ArrayList<>();
+
+			for (Access additionalBound : getAdditionalBoundsList()) {
+				c.add(additionalBound);
+			}
+
+			a.setAdditionalBounds(c);
+
+      return a;
+    }
+  }
+
+	/* additional type bounds backing field */
+	private Collection<Access> Access._additionalBounds = new ArrayList<>();
+
+	protected void Access.setAdditionalBounds(Collection<Access> c) {
+		_additionalBounds = c;
+	}
+
+	protected Collection<Access> Access.getAdditionalBounds() {
+		return _additionalBounds;
+	}
+
+	syn boolean VarAccess.isIntersectionAccess() {
+		if (decl() instanceof Declarator) {
+			return !((Declarator) decl()).getTypeAccess().getAdditionalBounds().isEmpty();
+		} else if (decl() instanceof ParameterDeclaration) {
+			return !((ParameterDeclaration) decl()).getTypeAccess().getAdditionalBounds().isEmpty();
+		} else {
+			return false;
+		}
+	}
+
+  private boolean VarAccess._hasDoneIntersectionRewrite = false;
+
+  protected boolean VarAccess.hasDoneIntersectionRewrite() {
+    return _hasDoneIntersectionRewrite;
+  }
+
+  protected void VarAccess.setDoneIntersectionRewrite(Boolean b) {
+    _hasDoneIntersectionRewrite = b;
+  }
+
+  /*** translation ***/
+
+  /* variable/parameter/field access */
+  rewrite VarAccess {
+    when (isIntersectionAccess()
+          && !castContext()       // TODO(cplrossi): test this
+          && !simpleAssignment()
+          && !hasDoneIntersectionRewrite()
+          )
+			to IntersectionCastExpr {
+				/* DEBUG */
+				System.err.println("found intersection var/param/field access at " + location());
+
+				List<Access> l = new List();
+				Access tAccess = null;
+
+				if (decl() instanceof Declarator) {
+					tAccess = ((Declarator) decl()).getTypeAccess();
+				} else {	/* this branch is guarded by isIntersectionAccess() check */
+					tAccess = ((ParameterDeclaration) decl()).getTypeAccess();
+				}
+
+				for (Access additionalBound : tAccess.getAdditionalBounds()) {
+					l.add(additionalBound.treeCopy());
+				}
+
+				Access a = tAccess.treeCopy();
+        Expr e = this;
+
+        setDoneIntersectionRewrite(true);
+
+				return new IntersectionCastExpr(a, l, e);
+			}
+  }
+
+  /* pure lambda target type inference */
+  rewrite LambdaExpr {
+    when (assignmentContext()
+          && !castContext()
+          && getParent() instanceof AssignExpr
+          && ((AssignExpr) getParent()).getDest() instanceof VarAccess
+          && ((VarAccess)((AssignExpr) getParent()).getDest()).isIntersectionAccess()
+          )
+      to IntersectionCastExpr {
+        System.err.println("found pure lambda expr in intersection type assignment context at line " + location());
+
+        Variable v = ((VarAccess)((AssignExpr) getParent()).getDest()).decl();
+        List<Access> l = new List();
+				Access tAccess = null;
+
+				if (v instanceof Declarator) {
+					tAccess = ((Declarator) v).getTypeAccess();
+				} else {	/* this branch is guarded by isIntersectionAccess() check */
+					tAccess = ((ParameterDeclaration) v).getTypeAccess();
+				}
+
+				for (Access additionalBound : tAccess.getAdditionalBounds()) {
+					l.add(additionalBound.treeCopy());
+				}
+
+				Access a = tAccess.treeCopy();
+        Expr e = this.treeCopy();
+
+        return new IntersectionCastExpr(a, l, e);
+      }
+  }
+}
