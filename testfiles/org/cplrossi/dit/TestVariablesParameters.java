@@ -1,8 +1,10 @@
 package org.cplrossi.dit;
 
 public class TestVariablesParameters {
+  private static I & J x;
+
   public static void main(String[] args) {
-    I & J x = () -> System.out.println("x");
+    x = () -> System.out.println("x");
     I & J c = new C();
 
     doSomething(new C());
