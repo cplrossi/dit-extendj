@@ -13,7 +13,7 @@ public class TestVariablesParameters {
     doSomething(c);
   }
 
-  public static void doSomething(I & J x) {
+  private static void doSomething(I & J x) {
     x.m();
     x.n();
   }
