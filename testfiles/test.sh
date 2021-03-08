@@ -5,7 +5,7 @@
 
 # TODO: need to support new file hierarchy
 
-MAIN_CLASSES="org.cplrossi.testgame.Game org.cplrossi.dit.IntercastDesugaring org.cplrossi.dit.PureLambda"
+MAIN_CLASSES='org.cplrossi.testgame.Game org.cplrossi.dit.TestIntercastDesugaring org.cplrossi.dit.TestPureLambda org.cplrossi.dit.TestVariablesParameters'
 
 check() {
 	if [[ $? -ne 0 ]]; then
@@ -18,9 +18,9 @@ check() {
 
 # Entry point
 
-for file in $(find . -name '*.java'); do 
+for file in $(find . -name '*.java'); do
 	java -jar ../dit-extendj.jar $file
-	
+
 	check $file
 done
 
@@ -31,4 +31,3 @@ for main_class in $MAIN_CLASSES; do
 
 	check
 done
-

@@ -1,6 +1,6 @@
 package org.cplrossi.dit;
 
-public class IntercastDesugaring {
+public class TestIntercastDesugaring {
   public static void main(String[] args) {
     C c = new C();  // user concrete type
     I i = (I & J) () -> System.out.println("I'm a lambda"); // induced class type

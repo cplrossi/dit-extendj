@@ -1,10 +1,10 @@
 package org.cplrossi.dit;
 
-public class PureLambda {
+public class TestPureLambda {
   private I & J x;
 
   public static void main(String[] args) {
-    new PureLambda().doSomething();
+    new TestPureLambda().doSomething();
   }
 
   private void doSomething() {
