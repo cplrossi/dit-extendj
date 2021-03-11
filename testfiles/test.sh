@@ -31,3 +31,6 @@ for main_class in $MAIN_CLASSES; do
 
 	check
 done
+
+echo -e '\nall tests passed'
+
