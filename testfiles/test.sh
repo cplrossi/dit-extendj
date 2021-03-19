@@ -5,7 +5,7 @@
 
 # TODO: need to support new file hierarchy
 
-MAIN_CLASSES='org.cplrossi.testgame.Game org.cplrossi.dit.TestIntercastDesugaring org.cplrossi.dit.TestPureLambda org.cplrossi.dit.TestVariablesParameters'
+MAIN_CLASSES='org.cplrossi.testgame.Game org.cplrossi.dit.TestIntercastDesugaring org.cplrossi.dit.TestPureLambda org.cplrossi.dit.TestVariablesParameters org.cplrossi.dit.TestReturnValue'
 
 check() {
 	if [[ $? -ne 0 ]]; then
@@ -33,4 +33,3 @@ for main_class in $MAIN_CLASSES; do
 done
 
 echo -e '\nall tests passed'
-
