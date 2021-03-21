@@ -23,8 +23,14 @@ aspect DeconfinedIntersectionTypes {
 
   syn boolean Access.isIntersectionAccess() = false;
   eq TypeAccess.isIntersectionAccess() = !(getAdditionalAccessBounds().isEmpty());
-  eq VarAccess.isIntersectionAccess() = decl().isIntersectionVariable() && !castContext();        // TMP
-  eq MethodAccess.isIntersectionAccess() = decl().hasIntersectionReturnValue() && !castContext(); // TMP
+  eq VarAccess.isIntersectionAccess() = 
+	decl().isIntersectionVariable() 
+	&& !castContext()
+	&& !(getParent() instanceof IntersectionCastExpr);
+  eq MethodAccess.isIntersectionAccess() = 
+	decl().hasIntersectionReturnValue()
+	&& !castContext()
+	&& !(getParent() instanceof IntersectionCastExpr);
 
   syn boolean Variable.isIntersectionVariable();
   eq Declarator.isIntersectionVariable() = getTypeAccess().isIntersectionAccess();
@@ -106,7 +112,6 @@ aspect DeconfinedIntersectionTypes {
   rewrite VarAccess {
     when (isIntersectionAccess()
           && !simpleAssignment()            // not a lvalue
-          && !(getParent() instanceof IntersectionCastExpr)
           && !hasDoneIntersectionRewrite()
     ) to IntersectionCastExpr {
       /* TODO(cplrossi): dopo aver aggiunto l'intercast, questo verrà riscritto
@@ -142,15 +147,11 @@ aspect DeconfinedIntersectionTypes {
   /* wrapping method access with intercast */
   rewrite MethodAccess {
     when (isIntersectionAccess()
+	  && !(this instanceof BoundMethodAccess)
           && !hasDoneIntersectionRewrite()
-          && !(getParent() instanceof IntersectionCastExpr)
     ) to IntersectionCastExpr {
-      /* TODO(cplrossi) reimplement boundAccess attribute to avoid runtime
-       * ClassCastException
-       */
-
       /* DEBUG */
-			System.err.println("found intersection method access at " + location());
+      System.err.println("found intersection method access at " + location());
 
       List<Access> l = new List();
 			Access tAccess = decl().getTypeAccess();
@@ -160,7 +161,7 @@ aspect DeconfinedIntersectionTypes {
 			}
 
 			Access a = tAccess.treeCopy();
-      Expr e = treeCopy();
+      Expr e = this;
 
       setDoneIntersectionRewrite(true);
 
