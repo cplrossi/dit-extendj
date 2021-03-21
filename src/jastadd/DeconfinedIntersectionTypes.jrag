@@ -23,7 +23,8 @@ aspect DeconfinedIntersectionTypes {
 
   syn boolean Access.isIntersectionAccess() = false;
   eq TypeAccess.isIntersectionAccess() = !(getAdditionalAccessBounds().isEmpty());
-  eq VarAccess.isIntersectionAccess() = decl().isIntersectionVariable();
+  eq VarAccess.isIntersectionAccess() = decl().isIntersectionVariable() && !castContext();        // TMP
+  eq MethodAccess.isIntersectionAccess() = decl().hasIntersectionReturnValue() && !castContext(); // TMP
 
   syn boolean Variable.isIntersectionVariable();
   eq Declarator.isIntersectionVariable() = getTypeAccess().isIntersectionAccess();
@@ -54,8 +55,9 @@ aspect DeconfinedIntersectionTypes {
   }
 
   /* testing assignment dest context information attribute */
-  eq Program.getCompilationUnit().destVariable() = null;
-  inh Variable CompilationUnit.destVariable();
+  eq Program.getChild().destVariable() = null;
+  inh Variable ASTNode.destVariable();
+
   inh Variable Expr.destVariable();
   eq AssignExpr.getSource().destVariable() {
     if (getDest() instanceof VarAccess) {
@@ -69,69 +71,102 @@ aspect DeconfinedIntersectionTypes {
   eq ReturnStmt.getResult().destVariable() = null;
 
   /* method declaration */
-  eq Program.getCompilationUnit().enclosingMethodDecl() = null;
-  inh MethodDecl CompilationUnit.enclosingMethodDecl();
-  inh MethodDecl Block.enclosingMethodDecl();
+  eq Program.getChild().enclosingMethodDecl() = null;
+  inh MethodDecl ASTNode.enclosingMethodDecl();
 
   eq MethodDecl.getBlock().enclosingMethodDecl() = this;
   inh MethodDecl Stmt.enclosingMethodDecl();
   inh MethodDecl Expr.enclosingMethodDecl();
 
   /* */
-  syn boolean MethodDecl.hasIntersectionReturnValue() = getTypeAccess().isIntersectionAccess();
+  syn boolean MethodDecl.hasIntersectionReturnValue() =
+    getTypeAccess().isIntersectionAccess();
 
   /* intersection return context */
-  eq Program.getCompilationUnit().intersectionReturnContext() = false;
-  inh boolean CompilationUnit.intersectionReturnContext();
+  eq Program.getChild().intersectionReturnContext() = false;
+  inh boolean ASTNode.intersectionReturnContext();
 
-  eq ReturnStmt.getResult().intersectionReturnContext() = enclosingMethodDecl().hasIntersectionReturnValue();
+  eq ReturnStmt.getResult().intersectionReturnContext() =
+    enclosingMethodDecl().hasIntersectionReturnValue();
   inh boolean Expr.intersectionReturnContext();
+
+  private boolean MethodAccess._hasDoneIntersectionRewrite = false;
+
+  protected boolean MethodAccess.hasDoneIntersectionRewrite() {
+    return _hasDoneIntersectionRewrite;
+  }
+
+  protected void MethodAccess.setDoneIntersectionRewrite(boolean b) {
+    _hasDoneIntersectionRewrite = b;
+  }
 
   /*** translation ***/
 
   /* wrapping variable/parameter/field access with intercast */
   rewrite VarAccess {
     when (isIntersectionAccess()
-          && !castContext()                 // TODO(cplrossi): test this
           && !simpleAssignment()            // not a lvalue
+          && !(getParent() instanceof IntersectionCastExpr)
           && !hasDoneIntersectionRewrite()
-          )
-			to IntersectionCastExpr {
-				/* DEBUG */
-				System.err.println("found intersection var/param/field access at " + location());
+    ) to IntersectionCastExpr {
+      /* TODO(cplrossi): dopo aver aggiunto l'intercast, questo verrà riscritto
+       * come accesso ad oggetto proxy; tuttavia, tale oggetto è creato usando
+       * il VarAccess originale come parametro, il quale verrà nuovamente
+       * riscritto come intercast -> ricorsione senza terminazione !!!
 
-				List<Access> l = new List();
-				Access tAccess = null;
+			/* DEBUG */
+			System.err.println("found intersection var/param/field access at " + location());
 
-				if (decl() instanceof Declarator) {
-					tAccess = ((Declarator) decl()).getTypeAccess();
-				} else {	/* this branch is guarded by isIntersectionAccess() check */
-					tAccess = ((ParameterDeclaration) decl()).getTypeAccess();
-				}
+			List<Access> l = new List();
+			Access tAccess = null;
 
-				for (Access additionalBound : tAccess.getAdditionalAccessBounds()) {
-					l.add(additionalBound.treeCopy());
-				}
-
-				Access a = tAccess.treeCopy();
-        Expr e = this;
-
-        setDoneIntersectionRewrite(true);
-
-				return new IntersectionCastExpr(a, l, e);
+			if (decl() instanceof Declarator) {
+				tAccess = ((Declarator) decl()).getTypeAccess();
+			} else {	/* this branch is guarded by isIntersectionAccess() check */
+				tAccess = ((ParameterDeclaration) decl()).getTypeAccess();
 			}
+
+			for (Access additionalBound : tAccess.getAdditionalAccessBounds()) {
+				l.add(additionalBound.treeCopy());
+			}
+
+			Access a = tAccess.treeCopy();
+      Expr e = this;
+
+      setDoneIntersectionRewrite(true);
+
+			return new IntersectionCastExpr(a, l, e);
+		}
   }
 
   /* wrapping method access with intercast */
-  // rewrite MethodAccess {
-  //   when (methodDecl().hasIntersectionReturnValue())
-  //     to IntersectionCastExpr {
-  //       /* DEBUG */
-	// 			System.err.println("found intersection method access at " + location());
-  //
-  //       return null;
-  //     }
-  // }
+  rewrite MethodAccess {
+    when (isIntersectionAccess()
+          && !hasDoneIntersectionRewrite()
+          && !(getParent() instanceof IntersectionCastExpr)
+    ) to IntersectionCastExpr {
+      /* TODO(cplrossi) reimplement boundAccess attribute to avoid runtime
+       * ClassCastException
+       */
+
+      /* DEBUG */
+			System.err.println("found intersection method access at " + location());
+
+      List<Access> l = new List();
+			Access tAccess = decl().getTypeAccess();
+
+      for (Access additionalBound : tAccess.getAdditionalAccessBounds()) {
+				l.add(additionalBound.treeCopy());
+			}
+
+			Access a = tAccess.treeCopy();
+      Expr e = treeCopy();
+
+      setDoneIntersectionRewrite(true);
+
+      return new IntersectionCastExpr(a, l, e);
+    }
+  }
 
   /* wrapping pure lambda with intercast by type inference */
   rewrite LambdaExpr {
@@ -139,48 +174,48 @@ aspect DeconfinedIntersectionTypes {
           && !castContext()
           && destVariable() != null
           && destVariable().isIntersectionVariable()
-    )
-      to IntersectionCastExpr {
-        /* DEBUG */
-        System.err.println("adding intercast to lambda expr in assign/invoke context");
+          && !(getParent() instanceof IntersectionCastExpr)
+    ) to IntersectionCastExpr {
+      /* DEBUG */
+      System.err.println("adding intercast to lambda expr in assign/invoke context");
 
-        List<Access> l = new List();
-				Access tAccess = null;
-        Variable v = destVariable();
+      List<Access> l = new List();
+			Access tAccess = null;
+      Variable v = destVariable();
 
-				if (v instanceof Declarator) {
-					tAccess = ((Declarator) v).getTypeAccess();
-				} else {  /* TODO(cplrossi) check if we should guard this branch */
-					tAccess = ((ParameterDeclaration) v).getTypeAccess();
-				}
+			if (v instanceof Declarator) {
+				tAccess = ((Declarator) v).getTypeAccess();
+			} else {  /* TODO(cplrossi) check if we should guard this branch */
+				tAccess = ((ParameterDeclaration) v).getTypeAccess();
+			}
 
-				for (Access additionalBound : tAccess.getAdditionalAccessBounds()) {
-					l.add(additionalBound.treeCopy());
-				}
+			for (Access additionalBound : tAccess.getAdditionalAccessBounds()) {
+				l.add(additionalBound.treeCopy());
+			}
 
-				Access a = tAccess.treeCopy();
-        Expr e = treeCopy();
+			Access a = tAccess.treeCopy();
+      Expr e = treeCopy();
 
-        return new IntersectionCastExpr(a, l, e);
-      }
+      return new IntersectionCastExpr(a, l, e);
+    }
     when (intersectionReturnContext()
           && !castContext()
-    )
-      to IntersectionCastExpr {
-        /* DEBUG */
-        System.err.println("adding intercast to lambda expr in return stmt");
+          && !(getParent() instanceof IntersectionCastExpr)
+    ) to IntersectionCastExpr {
+      /* DEBUG */
+      System.err.println("adding intercast to lambda expr in return stmt");
 
-        List<Access> l = new List();
-        Access tAccess = enclosingMethodDecl().getTypeAccess();
+      List<Access> l = new List();
+      Access tAccess = enclosingMethodDecl().getTypeAccess();
 
-        for (Access additionalBound : tAccess.getAdditionalAccessBounds()) {
-          l.add(additionalBound.treeCopy());
-        }
-
-        Access a = tAccess.treeCopy();
-        Expr e = treeCopy();  // FIXME(cplrossi): raises NullPointerException
-
-        return new IntersectionCastExpr(a, l, e);
+      for (Access additionalBound : tAccess.getAdditionalAccessBounds()) {
+        l.add(additionalBound.treeCopy());
       }
+
+      Access a = tAccess.treeCopy();
+      Expr e = treeCopy();
+
+      return new IntersectionCastExpr(a, l, e);
+    }
   }
 }

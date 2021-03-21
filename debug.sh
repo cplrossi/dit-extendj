@@ -1,7 +1,7 @@
 #!/bin/bash
 
 JARFILE=./dit-extendj.jar
-SRCFILE=./testfiles/org/cplrossi/dit/PureLambda.java
+SRCFILE=./testfiles/org/cplrossi/dit/TestVariablesParameters.java
 
 clear
 

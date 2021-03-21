@@ -25,46 +25,47 @@ aspect IntersectionTypesDesugaring {
 	 */
 
 	rewrite IntersectionCastExpr {
-		when (!(getExpr() instanceof LambdaExpr))
-			to Expr {
-				String className = "org.cplrossi.dit.IntersectionProxy";
-				String jarPath = this.getClass().getProtectionDomain()
-					.getCodeSource()
-					.getLocation()
-					.getPath();
+		when (!(getExpr() instanceof LambdaExpr)
+		) to Expr {
+			String className = "org.cplrossi.dit.IntersectionProxy";
+			String jarPath = this.getClass().getProtectionDomain()
+				.getCodeSource()
+				.getLocation()
+				.getPath();
 
-				if (!(program().hasIntersectionRuntime())) {
-					CompilationUnit cu = null;
+			/* TODO(cplrossi): use lookup instead of program() attr */
+			if (!(program().hasIntersectionRuntime())) {
+				CompilationUnit cu = null;
 
-					try {
-						cu = new JarSourceFilePath(jarPath)
-							.getCompilationUnit(program(), className);
-					} catch (IOException e) {
-						System.err.println(e.getMessage());
-					}
-
-					for (ImportDecl d : cu.getImportDeclList()) {
-						compilationUnit().addImportDecl(d);
-					}
-
-					for (TypeDecl t: cu.getTypeDeclList()) {
-						compilationUnit().addTypeDecl(t);
-						program().addType(t);
-					}
-
-					program().setIntersectionRuntime(true);
-
-					System.err.println("added intersection cast runtime");
+				try {
+					cu = new JarSourceFilePath(jarPath)
+						.getCompilationUnit(program(), className);
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
 				}
 
-				/* create access on induced functional interface, needed to build the new subtree */
-				TypeAccess tAccess = new TypeAccess(type().getID());
+				for (ImportDecl d : cu.getImportDeclList()) {
+					compilationUnit().addImportDecl(d);
+				}
 
-				/* DEBUG */
-				System.err.println("triggered induced funtional interface machinery");
+				for (TypeDecl t: cu.getTypeDeclList()) {
+					compilationUnit().addTypeDecl(t);
+					program().addType(t);
+				}
 
-				return createDesugaredIntersectionSubtree(tAccess);
+				program().setIntersectionRuntime(true);
+
+				System.err.println("added intersection cast runtime");
 			}
+
+			/* create access on induced functional interface, needed to build the new subtree */
+			TypeAccess tAccess = new TypeAccess(type().getID());
+
+			/* DEBUG */
+			System.err.println("triggered induced funtional interface machinery");
+
+			return createDesugaredIntersectionSubtree(tAccess);
+		}
 	}
 
 	private boolean Program._hasIntersectionRuntime = false;
@@ -111,9 +112,9 @@ aspect IntersectionTypesDesugaring {
 	 * state, the attribute will be cached.
 	 */
 
-	 	/* a fresh interface declaration (as non terminal attribute) which extends
-	 	 * every intersection type bound, that is an induced functional interface
-	 	 */
+	/* a fresh interface declaration (as non terminal attribute) which extends
+ 	 * every intersection type bound, that is an induced functional interface
+ 	 */
  	refine TypeCheck eq IntersectionCastExpr.type() {
  		/* TODO: the following check fails with inner interfaces */
  	  TypeDecl t = program().lookupType(hostPackage(), inducedTypeName());
