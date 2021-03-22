@@ -23,7 +23,7 @@ aspect IntersectionTypesDesugaring {
 	 * programmatically built in the AST, maybe with an ID starting with '$'
 	 * to avoid name collisions.
 	 */
-
+	 
 	rewrite IntersectionCastExpr {
 		when (!(getExpr() instanceof LambdaExpr)
 		) to Expr {
