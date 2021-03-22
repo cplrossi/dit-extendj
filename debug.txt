@@ -1,0 +1,2 @@
+org.extendj.ast.TypeAccess.collect_contributors_CompilationUnit_problems
+6 loop

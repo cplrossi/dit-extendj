@@ -105,10 +105,10 @@ aspect DeconfinedIntersectionTypes {
 
   /* wrapping variable/parameter/field access with intercast */
   rewrite VarAccess {
-    when (isIntersectionAccess()
+    when (!hasDoneIntersectionRewrite()
+          && isIntersectionAccess()
           && !castContext()
           && !simpleAssignment()            // not a lvalue
-          && !hasDoneIntersectionRewrite()
     ) to IntersectionCastExpr {
       /* DEBUG */
       System.err.println("found intersection var/param/field access at " + location());
@@ -137,9 +137,10 @@ aspect DeconfinedIntersectionTypes {
 
   /* wrapping method access with intercast */
   rewrite MethodAccess {
-    when (isIntersectionAccess()
+    when (!hasDoneIntersectionRewrite()
+          && isIntersectionAccess()
           && !castContext()
-          && !hasDoneIntersectionRewrite()
+          && !(this instanceof BoundMethodAccess)
     ) to IntersectionCastExpr {
       /* DEBUG */
       System.err.println("found intersection method access at " + location());

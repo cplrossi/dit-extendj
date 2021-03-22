@@ -26,6 +26,7 @@ aspect IntersectionTypesDesugaring {
 	 
 	rewrite IntersectionCastExpr {
 		when (!(getExpr() instanceof LambdaExpr)
+                      && getParent() != this
 		) to Expr {
 			String className = "org.cplrossi.dit.IntersectionProxy";
 			String jarPath = this.getClass().getProtectionDomain()
