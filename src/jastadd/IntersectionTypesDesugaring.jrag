@@ -23,11 +23,10 @@ aspect IntersectionTypesDesugaring {
 	 * programmatically built in the AST, maybe with an ID starting with '$'
 	 * to avoid name collisions.
 	 */
-	 
+
 	rewrite IntersectionCastExpr {
 		when (!(getExpr() instanceof LambdaExpr)
-                      && getParent() != this
-		) to Expr {
+		) to CastExpr {
 			String className = "org.cplrossi.dit.IntersectionProxy";
 			String jarPath = this.getClass().getProtectionDomain()
 				.getCodeSource()

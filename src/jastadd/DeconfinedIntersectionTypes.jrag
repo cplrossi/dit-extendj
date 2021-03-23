@@ -131,7 +131,7 @@ aspect DeconfinedIntersectionTypes {
 
       setDoneIntersectionRewrite(true);
 
-      return new IntersectionCastExpr(a, l, e);
+      return new IntersectionCastExpr(a, l, e);     // TODO(cplrossi): SET PARENT !!!
     }
   }
 
@@ -157,7 +157,7 @@ aspect DeconfinedIntersectionTypes {
 
       setDoneIntersectionRewrite(true);
 
-      return new IntersectionCastExpr(a, l, e);
+      return new IntersectionCastExpr(a, l, e);     // TODO(cplrossi): SET PARENT !!!
     }
   }
 
