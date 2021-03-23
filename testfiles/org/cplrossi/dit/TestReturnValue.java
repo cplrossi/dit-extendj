@@ -3,6 +3,9 @@ package org.cplrossi.dit;
 public class TestReturnValue {
 	public static void main(String[] args) {
 		accept(getInstance());
+
+		getInstance().m();
+		getInstance().n();
 	}
 
 	private static I $$ J getInstance() {

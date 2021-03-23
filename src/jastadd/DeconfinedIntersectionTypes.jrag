@@ -26,6 +26,23 @@ aspect DeconfinedIntersectionTypes {
   eq VarAccess.isIntersectionAccess() = decl().isIntersectionVariable();
   eq MethodAccess.isIntersectionAccess() = decl().hasIntersectionReturnValue();
 
+  // eq Dot.isIntersectionAccess() = false;
+  // eq ConstructorAccess.isIntersectionAccess() = false;
+  // eq ThisAccess.isIntersectionAccess() = false;
+  // eq SuperAccess.isIntersectionAccess() = false;
+  // eq PackageAccess.isIntersectionAccess() = false;
+  // eq ArrayAccess.isIntersectionAccess() = false;
+  // eq ParseName.isIntersectionAccess() = false;
+  // eq ClassInstanceExpr.isIntersectionAccess() = false;
+  // eq ClassAccess.isIntersectionAccess() = false;
+  // eq ParTypeAccess.isIntersectionAccess() = false;
+  // eq Wildcard.isIntersectionAccess() = false;
+  // eq WildcardExtends.isIntersectionAccess() = false;
+  // eq WildcardSuper.isIntersectionAccess() = false;
+  // eq DiamondAccess.isIntersectionAccess() = false;
+  // eq SyntheticTypeAccess.isIntersectionAccess() = false;
+  // eq IntersectionAccess.isIntersectionAccess() = true;
+
   syn boolean Variable.isIntersectionVariable();
   eq Declarator.isIntersectionVariable() = getTypeAccess().isIntersectionAccess();
   eq ParameterDeclaration.isIntersectionVariable() = getTypeAccess().isIntersectionAccess();
@@ -44,15 +61,13 @@ aspect DeconfinedIntersectionTypes {
     return _additionalAccessBounds;
   }
 
-  private boolean VarAccess._intersectionCastContext = false;
+  /* intersection cast context attribute */
+  eq Program.getChild().intersectionCastContext() = false;
+  inh boolean ASTNode.intersectionCastContext();
 
-  protected boolean VarAccess.intersectionCastContext() {
-    return _intersectionCastContext;
-  }
+  eq IntersectionCastExpr.getExpr().intersectionCastContext() = true;
 
-  protected void VarAccess.setIntersectionCastContext(Boolean b) {
-    _intersectionCastContext = b;
-  }
+  uncache ASTNode.intersectionCastContext();
 
   /* testing assignment dest context information attribute */
   eq Program.getChild().destVariable() = null;
@@ -70,7 +85,7 @@ aspect DeconfinedIntersectionTypes {
   eq MethodAccess.getArg(int index).destVariable() = decl().getParameter(index);
   eq ReturnStmt.getResult().destVariable() = null;
 
-  /* method declaration */
+  /* method declaration reference attribute */
   eq Program.getChild().enclosingMethodDecl() = null;
   inh MethodDecl ASTNode.enclosingMethodDecl();
 
@@ -82,7 +97,7 @@ aspect DeconfinedIntersectionTypes {
   syn boolean MethodDecl.hasIntersectionReturnValue() =
     getTypeAccess().isIntersectionAccess();
 
-  /* intersection return context */
+  /* intersection return context attribute */
   eq Program.getChild().intersectionReturnContext() = false;
   inh boolean ASTNode.intersectionReturnContext();
 
@@ -90,23 +105,12 @@ aspect DeconfinedIntersectionTypes {
     enclosingMethodDecl().hasIntersectionReturnValue();
   inh boolean Expr.intersectionReturnContext();
 
-  private boolean MethodAccess._intersectionCastContext = false;
-
-  protected boolean MethodAccess.intersectionCastContext() {
-    return _intersectionCastContext;
-  }
-
-  protected void MethodAccess.setIntersectionCastContext(boolean b) {
-    _intersectionCastContext = b;
-  }
-
   /*** translation ***/
 
   /* wrapping variable/parameter/field access with intercast */
   rewrite VarAccess {
     when (isIntersectionAccess()
           && !intersectionCastContext()
-          && !castContext()
           && !simpleAssignment()            // not a lvalue
     ) to IntersectionCastExpr {
       /* DEBUG */
@@ -128,17 +132,14 @@ aspect DeconfinedIntersectionTypes {
       Access a = tAccess.treeCopy();
       Expr e = treeCopyNoTransform();
 
-      ((VarAccess) e).setIntersectionCastContext(true);
-
       return new IntersectionCastExpr(a, l, e);
     }
   }
 
   /* wrapping method access with intercast */
   rewrite MethodAccess {
-    when (!intersectionCastContext()    // DEVE ESSERE PER PRIMO
-          &&isIntersectionAccess()
-          && !castContext()
+    when (!intersectionCastContext()
+          && isIntersectionAccess()
           && !(this instanceof BoundMethodAccess)
     ) to IntersectionCastExpr {
       /* DEBUG */
@@ -153,8 +154,6 @@ aspect DeconfinedIntersectionTypes {
 
       Access a = tAccess.treeCopy();
       Expr e = treeCopyNoTransform();
-
-      ((MethodAccess) e).setIntersectionCastContext(true);
 
       return new IntersectionCastExpr(a, l, e);
     }
@@ -187,10 +186,7 @@ aspect DeconfinedIntersectionTypes {
       Access a = tAccess.treeCopy();
       Expr e = treeCopy();
 
-      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
-      ice.setParent(getParent());
-
-      return ice;
+      return new IntersectionCastExpr(a, l, e);
     }
     when (intersectionReturnContext()
           && !castContext()
@@ -208,10 +204,7 @@ aspect DeconfinedIntersectionTypes {
       Access a = tAccess.treeCopy();
       Expr e = treeCopy();
 
-      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
-      ice.setParent(getParent());
-
-      return ice;
+      return new IntersectionCastExpr(a, l, e);
     }
   }
 }

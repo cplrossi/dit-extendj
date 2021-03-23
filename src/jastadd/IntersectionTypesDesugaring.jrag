@@ -13,7 +13,7 @@ aspect IntersectionTypesDesugaring {
 	 * rewritten code:	(($AB) IntersectionProxy.newInstance(
 		 										o,
 		 										new Class[] {
-			 									$AB.class
+			 										$AB.class
 												}
 											)).m();
 	 *
@@ -23,6 +23,20 @@ aspect IntersectionTypesDesugaring {
 	 * programmatically built in the AST, maybe with an ID starting with '$'
 	 * to avoid name collisions.
 	 */
+
+	eq CastExpr.getExpr().intersectionCastContext() {
+		if (getExpr() instanceof Dot
+				&& ((Dot) getExpr()).getLeft() instanceof TypeAccess
+				&& ((TypeAccess) ((Dot) getExpr()).getLeft()).name().equals("IntersectionProxy")
+		) {
+			/* DEBUG */
+			System.err.println("we are in fu**ing intersection cast context");
+
+			return true;
+		}
+
+		return false;
+	}
 
 	rewrite IntersectionCastExpr {
 		when (!(getExpr() instanceof LambdaExpr)
