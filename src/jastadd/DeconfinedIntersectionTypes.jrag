@@ -131,7 +131,10 @@ aspect DeconfinedIntersectionTypes {
 
       setDoneIntersectionRewrite(true);
 
-      return new IntersectionCastExpr(a, l, e);     // TODO(cplrossi): SET PARENT !!!
+      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
+      ice.setParent(getParent());
+
+      return ice;
     }
   }
 
@@ -157,7 +160,10 @@ aspect DeconfinedIntersectionTypes {
 
       setDoneIntersectionRewrite(true);
 
-      return new IntersectionCastExpr(a, l, e);     // TODO(cplrossi): SET PARENT !!!
+      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
+      ice.setParent(getParent());
+
+      return ice;
     }
   }
 
@@ -188,7 +194,10 @@ aspect DeconfinedIntersectionTypes {
       Access a = tAccess.treeCopy();
       Expr e = treeCopy();
 
-      return new IntersectionCastExpr(a, l, e);
+      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
+      ice.setParent(getParent());
+
+      return ice;
     }
     when (intersectionReturnContext()
           && !castContext()
@@ -206,7 +215,10 @@ aspect DeconfinedIntersectionTypes {
       Access a = tAccess.treeCopy();
       Expr e = treeCopy();
 
-      return new IntersectionCastExpr(a, l, e);
+      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
+      ice.setParent(getParent());
+
+      return ice;
     }
   }
 }
