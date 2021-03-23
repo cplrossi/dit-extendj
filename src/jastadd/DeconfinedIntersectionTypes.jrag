@@ -127,14 +127,11 @@ aspect DeconfinedIntersectionTypes {
       }
 
       Access a = tAccess.treeCopy();
-      Expr e = this;
+      Expr e = treeCopyNoTransform();
 
-      setDoneIntersectionRewrite(true);
+      ((VarAccess) e).setDoneIntersectionRewrite(true);
 
-      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
-      ice.setParent(getParent());
-
-      return ice;
+      return new IntersectionCastExpr(a, l, e);
     }
   }
 
@@ -156,14 +153,11 @@ aspect DeconfinedIntersectionTypes {
       }
 
       Access a = tAccess.treeCopy();
-      Expr e = this;
+      Expr e = treeCopyNoTransform();
 
-      setDoneIntersectionRewrite(true);
+      ((MethodAccess) e).setDoneIntersectionRewrite(true);
 
-      IntersectionCastExpr ice = new IntersectionCastExpr(a, l, e);
-      ice.setParent(getParent());
-
-      return ice;
+      return new IntersectionCastExpr(a, l, e);
     }
   }
 

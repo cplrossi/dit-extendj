@@ -19,7 +19,7 @@ check() {
 # Entry point
 
 for file in $(find . -name '*.java'); do
-	java -jar ../dit-extendj.jar -verbose $file
+	java -jar ../dit-extendj.jar $file
 
 	check $file
 done
