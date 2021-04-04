@@ -15,8 +15,8 @@ jastadd {
   modules {
     include("extendj/jastadd_modules") // Include core ExtendJ modules.
 
-    module "dit-extendj", {
-      imports "java8 backend" // ExtendJ dependency for dit-extendj module.
+    module "extendj-dit", {
+      imports "java8 backend" // ExtendJ dependency for extendj-dit module.
 
       jastadd {
         basedir "src/jastadd/"
@@ -38,7 +38,7 @@ jastadd {
   }
 
   // Target module to build:
-  module = 'dit-extendj'
+  module = 'extendj-dit'
 
   astPackage = 'org.extendj.ast'
   parser.name = 'JavaParser'
@@ -79,7 +79,7 @@ sourceCompatibility = targetCompatibility = '1.8'
 task sourceZip(type: Zip) {
   description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
   destinationDir = projectDir
-  archiveName = "dit-extendj-src.zip"
+  archiveName = "extendj-dit-src.zip"
 
   from (projectDir) {
     exclude '**/.git'
@@ -97,5 +97,5 @@ task sourceZip(type: Zip) {
     exclude '**/*.swp'
   }
 
-  into 'dit-extendj'
+  into 'extendj-dit'
 }
