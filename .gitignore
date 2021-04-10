@@ -2,21 +2,30 @@
 /.gradle/
 /build/
 
-# Eclipse files.
-/bin/
-/.classpath
-/.project
-/.settings/
-
 # Generated files
 /src/gen/
 /src/gen-res/
 /*.jar
 /*.zip
 
-# Vim swap files.
-*.swp
+# Vim swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Vim session
+Session.vim
+Sessionx.vim
+
+# Vim temporary
+.netrwhist
+*~
+# Vim auto-generated tag files
+tags
+# Vim persistent undo
+[._]*.un~
 
 # Test class files.
 /testfiles/**/*.class
-
