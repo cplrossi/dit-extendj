@@ -30,7 +30,7 @@ aspect IntersectionTypesDesugaring {
 				&& ((TypeAccess) ((Dot) getExpr()).getLeft()).name().equals("IntersectionProxy")
 		) {
 			/* DEBUG */
-			System.err.println("we are in fu**ing intersection cast context");
+			System.err.println("we are in intersection cast context");
 
 			return true;
 		}
@@ -44,6 +44,8 @@ aspect IntersectionTypesDesugaring {
 			/* TODO(cplrossi): use lookup instead of program() attr */
 			if (!(program().hasIntersectionRuntime())) {
 				String className = "org.cplrossi.dit.IntersectionProxy";
+
+				/* get path of JAR from which this code is executing */
 				String jarPath = this.getClass().getProtectionDomain()
 					.getCodeSource()
 					.getLocation()
@@ -52,16 +54,19 @@ aspect IntersectionTypesDesugaring {
 				CompilationUnit cu = null;
 
 				try {
+					/* parse IntersectionProxy class */
 					cu = new JarSourceFilePath(jarPath)
 						.getCompilationUnit(program(), className);
 				} catch (IOException e) {
 					System.err.println(e.getMessage());
 				}
 
+				/* adding import declarations to current CU */
 				for (ImportDecl d : cu.getImportDeclList()) {
 					compilationUnit().addImportDecl(d);
 				}
 
+				/* adding new type declarations to current CU */
 				for (TypeDecl t: cu.getTypeDeclList()) {
 					compilationUnit().addTypeDecl(t);
 					program().addType(t);
