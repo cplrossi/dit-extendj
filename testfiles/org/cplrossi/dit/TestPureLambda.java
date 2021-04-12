@@ -1,7 +1,7 @@
 package org.cplrossi.dit;
 
 public class TestPureLambda {
-  private I $$ J x;
+  private I & J x;
 
   public static void main(String[] args) {
     new TestPureLambda().doSomething();

@@ -8,11 +8,11 @@ public class TestReturnValue {
 		getInstance().n();
 	}
 
-	private static I $$ J getInstance() {
+	private static I & J getInstance() {
 		return () -> System.out.println("Here I am.");
 	}
 
-	private static void accept(I $$ J x) {
+	private static void accept(I & J x) {
 		x.m();
 		x.n();
 	}

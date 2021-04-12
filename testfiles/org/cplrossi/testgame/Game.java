@@ -1,7 +1,7 @@
 package org.cplrossi.testgame;
 
 public class Game {
-	public static void goAcrossRavine(Swimmable $$ Flyable player, boolean underwaterObj) {
+	public static void goAcrossRavine(Swimmable & Flyable player, boolean underwaterObj) {
 		System.out.println("Reached the ravine");
 
 		/* test parameter declaration */
@@ -21,7 +21,7 @@ public class Game {
 	}
 
 	public static void main(String[] args) {
-		Swimmable $$ Flyable player = new Pelican();
+		Swimmable & Flyable player = new Pelican();
 
 		/* test variable declaration */
 		goAcrossRavine(player, true);

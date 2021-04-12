@@ -28,12 +28,7 @@ aspect IntersectionTypesDesugaring {
 		if (getExpr() instanceof Dot
 				&& ((Dot) getExpr()).getLeft() instanceof TypeAccess
 				&& ((TypeAccess) ((Dot) getExpr()).getLeft()).name().equals("IntersectionProxy")
-		) {
-			/* DEBUG */
-			System.err.println("we are in intersection cast context");
-
-			return true;
-		}
+		) return true;
 
 		return false;
 	}
