@@ -41,14 +41,14 @@ aspect IntersectionTypesDesugaring {
 	rewrite IntersectionCastExpr {
 		when (!(getExpr() instanceof LambdaExpr)
 		) to CastExpr {
-			String className = "org.cplrossi.dit.IntersectionProxy";
-			String jarPath = this.getClass().getProtectionDomain()
-				.getCodeSource()
-				.getLocation()
-				.getPath();
-
 			/* TODO(cplrossi): use lookup instead of program() attr */
 			if (!(program().hasIntersectionRuntime())) {
+				String className = "org.cplrossi.dit.IntersectionProxy";
+				String jarPath = this.getClass().getProtectionDomain()
+					.getCodeSource()
+					.getLocation()
+					.getPath();
+
 				CompilationUnit cu = null;
 
 				try {
