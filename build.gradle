@@ -27,8 +27,8 @@ jastadd {
 
       scanner {
       	basedir "src/scanner"
-        include "Macros.flex", [-2]
-	      include "IntersectionTypes.flex"
+        //include "Macros.flex", [-2]
+        //include "IntersectionTypes.flex"
       }
 
       parser {

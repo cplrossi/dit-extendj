@@ -1,1 +1,0 @@
-Identifier = [:jletter:][:jletterdigit:]*

@@ -1,21 +1,40 @@
-Access reference_type =
-	intersection_type.t
-	 {: return t; :}
-	;
+%nonassoc FOO;
 
-Access intersection_type =
-	reference_type.t additional_bound_list_2.b
-	 {: return new IntersectionAccess(t, b); :}
-	;
+Access class_or_interface :=
+    name @FOO
+  | class_or_interface.n LT type_argument_list_1.l DOT name.end
+    {: return new ParTypeAccess(n, l).qualifiesAccess(end); :}
+;
+
+BodyDecl field_declaration =
+		modifiers.m? type.t additional_bound_list_2.b field_declarators.v SEMICOLON
+			{: return new FieldDecl(new Modifiers(m), new IntersectionAccess(t, b), v); :}
+;
+
+VarDeclStmt local_variable_declaration =
+		modifiers.m? type.t additional_bound_list_2.b variable_declarators.l
+			{: System.err.println("[PARSER] found inter variable"); return new VarDeclStmt(new Modifiers(m), new IntersectionAccess(t, b), l); :}
+;
+
+ParameterDeclaration formal_parameter =
+  	modifiers.m? type.t additional_bound_list_2.b IDENTIFIER dims.d?
+			{: return new ParameterDeclaration(new Modifiers(m), new IntersectionAccess(t, b).addArrayDims(d), IDENTIFIER); :}
+;
+
+MethodDecl method_header =
+    modifiers.m? type.t additional_bound_list_2.b IDENTIFIER LPAREN formal_parameter_list.l? RPAREN dims.d? throws.tl?
+    	{: return new MethodDecl(new Modifiers(m), new IntersectionAccess(t, b).addArrayDims(d), IDENTIFIER, l, tl, new Opt()); :}
+	| modifiers.m? LT type_parameter_list_1.l type.t additional_bound_list_2.b IDENTIFIER LPAREN formal_parameter_list.p? RPAREN dims.d? throws.tl?
+			{: return new GenericMethodDecl(new Modifiers(m), new IntersectionAccess(t, b).addArrayDims(d), IDENTIFIER, p, tl, new Opt(), l); :}
+;
 
 List additional_bound_list_2 =
-	additional_bound_2.b additional_bound_list_2.l
-	 {: l.insertChild(b, 0); return l; :}
+		additional_bound_2.b additional_bound_list_2.l
+			{: l.insertChild(b, 0); return l; :}
 	| additional_bound_2.b
-	 {: return new List().add(b); :}
-	;
+		 	{: return new List().add(b); :}
+;
 
 Access additional_bound_2 =
-	INTERSECT interface_type.t
-	 {: return t; :}
-	;
+		AND class_or_interface_type
+;

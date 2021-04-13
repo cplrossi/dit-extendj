@@ -1,6 +1,9 @@
 package org.cplrossi.testgame;
 
 public class Game {
+	/* TMP */
+	private static Swimmable & Flyable player;
+
 	public static void goAcrossRavine(Swimmable & Flyable player, boolean underwaterObj) {
 		System.out.println("Reached the ravine");
 
@@ -21,22 +24,13 @@ public class Game {
 	}
 
 	public static void main(String[] args) {
-		Swimmable & Flyable player = new Pelican();
+		// Swimmable & Flyable player = new Pelican();
+
+		/* TMP */
+		player = new Pelican();
 
 		/* test variable declaration */
 		goAcrossRavine(player, true);
-	}
-
-	public static class Pelican implements Flyable, Swimmable {
-		@Override
-		public void fly() {
-			System.out.println("Pelican is flying");
-		}
-
-		@Override
-		public void swim() {
-			System.out.println("Pelican is swimming");
-		}
 	}
 }
 

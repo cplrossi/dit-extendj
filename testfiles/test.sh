@@ -5,6 +5,7 @@
 
 # TODO: need to support new file hierarchy
 
+JAR='../extendj-dit.jar'
 MAIN_CLASSES='org.cplrossi.testgame.Game org.cplrossi.dit.TestIntercastDesugaring org.cplrossi.dit.TestPureLambda org.cplrossi.dit.TestVariablesParameters org.cplrossi.dit.TestReturnValue'
 
 check() {
@@ -19,7 +20,7 @@ check() {
 # Entry point
 
 for file in $(find . -name '*.java'); do
-	java -jar ../dit-extendj.jar $file
+	java -jar $JAR $file
 
 	check $file
 done
