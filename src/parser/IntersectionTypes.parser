@@ -1,26 +1,36 @@
 %nonassoc FOO;
 
-Access class_or_interface :=
-    name @FOO
-  | class_or_interface.n LT type_argument_list_1.l DOT name.end
-    {: return new ParTypeAccess(n, l).qualifiesAccess(end); :}
-;
+/* solve LALR(1) reduce-reduce conflict on "name"
+ * FOO rule has minor precedence than BOTTOM
+ */
+Expr postfix_expression :=
+    primary @BOTTOM
+  | name    @FOO
+  | postincrement_expression
+  | postdecrement_expression
+  ;
 
+/* class field */
 BodyDecl field_declaration =
 		modifiers.m? type.t additional_bound_list_2.b field_declarators.v SEMICOLON
 			{: return new FieldDecl(new Modifiers(m), new IntersectionAccess(t, b), v); :}
 ;
 
-VarDeclStmt local_variable_declaration =
-		modifiers.m? type.t additional_bound_list_2.b variable_declarators.l
-			{: System.err.println("[PARSER] found inter variable"); return new VarDeclStmt(new Modifiers(m), new IntersectionAccess(t, b), l); :}
+/* method local variables */
+VarDeclStmt local_variable_declaration :=
+    modifiers.m? type.t variable_declarators.l
+      {: return new VarDeclStmt(new Modifiers(m), t, l); :}
+  | modifiers.m? type.t additional_bound_list_2.b variable_declarators.l
+			{: return new VarDeclStmt(new Modifiers(m), new IntersectionAccess(t, b), l); :}
 ;
 
+/* method formal parameters */
 ParameterDeclaration formal_parameter =
   	modifiers.m? type.t additional_bound_list_2.b IDENTIFIER dims.d?
 			{: return new ParameterDeclaration(new Modifiers(m), new IntersectionAccess(t, b).addArrayDims(d), IDENTIFIER); :}
 ;
 
+/* method signatures return value */
 MethodDecl method_header =
     modifiers.m? type.t additional_bound_list_2.b IDENTIFIER LPAREN formal_parameter_list.l? RPAREN dims.d? throws.tl?
     	{: return new MethodDecl(new Modifiers(m), new IntersectionAccess(t, b).addArrayDims(d), IDENTIFIER, l, tl, new Opt()); :}
@@ -28,6 +38,7 @@ MethodDecl method_header =
 			{: return new GenericMethodDecl(new Modifiers(m), new IntersectionAccess(t, b).addArrayDims(d), IDENTIFIER, p, tl, new Opt(), l); :}
 ;
 
+/* rest of intersection elements */
 List additional_bound_list_2 =
 		additional_bound_2.b additional_bound_list_2.l
 			{: l.insertChild(b, 0); return l; :}
@@ -35,6 +46,7 @@ List additional_bound_list_2 =
 		 	{: return new List().add(b); :}
 ;
 
+/* an intersection element */
 Access additional_bound_2 =
 		AND class_or_interface_type
 ;
