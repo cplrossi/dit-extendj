@@ -17,10 +17,8 @@ BodyDecl field_declaration =
 ;
 
 /* method local variables */
-VarDeclStmt local_variable_declaration :=
-    modifiers.m? type.t variable_declarators.l
-      {: return new VarDeclStmt(new Modifiers(m), t, l); :}
-  | modifiers.m? type.t additional_bound_list_2.b variable_declarators.l
+VarDeclStmt local_variable_declaration =
+    modifiers.m? type.t additional_bound_list_2.b variable_declarators.l
 			{: return new VarDeclStmt(new Modifiers(m), new IntersectionAccess(t, b), l); :}
 ;
 
