@@ -8,17 +8,19 @@ public class TestVariablesParameters {
 
     I & J c = new C();
 
-    int a = 1, b = 0;
-    int res = a & b;
-
     doSomething(new C());
     doSomething(() -> System.out.println("I'm a lambda"));
     doSomething(x);
     doSomething(c);
+    doSomething(createLambda());
   }
 
   private static void doSomething(I & J x) {
     x.m();
     x.n();
+  }
+
+  private static I & J createLambda() {
+    return () -> System.out.println("I'm a lambda");
   }
 }
