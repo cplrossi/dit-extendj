@@ -6,4 +6,4 @@ This is an extension to [ExtendJ](https://extendj.org/) compiler. It implements
 of intersection types is currently implemented, that is intersections of
 (potentially parametrized) interfaces only.
 
-[to be continued]
+While working for simple use cases, this project is in an embryonic state.
