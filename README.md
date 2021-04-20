@@ -10,7 +10,7 @@ While working for simple use cases (see `testfiles/`), this project is in an emb
 
 ## Building
 
-Building process is tested under OpenJDK8. To build the extended compiler, Just run on the shell:
+Building process is tested under OpenJDK8. To build the extended compiler, just run on the shell:
 
     ./gradlew
     
