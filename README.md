@@ -12,7 +12,7 @@ While working for simple use cases (see `testfiles/`), this project is in an emb
 
 Building process is tested under OpenJDK8. To build the extended compiler, just run on the shell:
 
-    ./gradlew
+    $ ./gradlew
     
 The final artifact is `extendj-dit.jar`, located in the root directory.
     
@@ -20,14 +20,14 @@ The final artifact is `extendj-dit.jar`, located in the root directory.
 
 Run on the shell:
 
-    cd testfiles && ./test.sh
+    $ cd testfiles && ./test.sh
     
 ## Cleaning
 
 To clean the project tree from Gradle generated files, run on the shell:
 
-    ./gradlew clean
+    $ ./gradlew clean
     
 To clean `testfiles/` subtree from generated classes, run on the shell:
 
-    cd testfiles && ./clean.sh
+    $ cd testfiles && ./clean.sh
